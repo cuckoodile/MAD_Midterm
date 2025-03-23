@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 
 import { handleCurrencySymbol } from "@/sqlConfig";
@@ -10,7 +10,19 @@ export default function CartCard({ data, openModal }) {
       android_ripple={{ color: "black" }}
       onPress={() => openModal(data)}
     >
-      <View style={styles.img} />
+      {/* <View style={styles.img} /> */}
+
+      {/* IMAGEEEE */}
+      <View style={{ borderRadius: "50%", overflow: "hidden" }}>
+        <Image
+          source={{ uri: data.image }}
+          style={{
+            backgroundColor: "black",
+            height: 80,
+            width: 80,
+          }}
+        />
+      </View>
 
       <View style={styles.infoContainer}>
         <Text>{data.name}</Text>
@@ -23,7 +35,9 @@ export default function CartCard({ data, openModal }) {
           }}
         >
           <Text>ID: {data.id}</Text>
-          <Text>Price: {handleCurrencySymbol(data.currency_name, data.price)}</Text>
+          <Text>
+            Price: {handleCurrencySymbol(data.currency_name, data.price)}
+          </Text>
         </View>
 
         <Text>View</Text>
@@ -38,7 +52,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     padding: 5,
     borderWidth: 1,
-    borderRadius: 10
+    borderRadius: 10,
   },
   infoContainer: {
     alignItems: "center",

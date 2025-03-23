@@ -13,9 +13,14 @@ import React, { useCallback, useState, useEffect, useRef } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
-import * as ImagePicker from "expo-image-picker";
 
-import { fetchAll, fetchProduct, insert, update } from "../../sqlConfig";
+import {
+  fetchAll,
+  fetchProduct,
+  insert,
+  update,
+  handlePickImage,
+} from "../../sqlConfig";
 import Card from "../components/Card";
 import PopupModal from "../components/PopupModal";
 import Dropdown from "../components/Dropdown";
@@ -69,12 +74,15 @@ export default function Index() {
   useEffect(() => {
     setRefresh(!refresh);
     setSelectedName(selectedEditData?.name);
+    setSelectedImage(selectedEditData?.image);
+    setSelectedPrice(selectedEditData?.price);
   }, [selectedEditData]);
 
   // Card List Transition Animations
   useFocusEffect(
     useCallback(() => {
       setRefresh(!refresh);
+      setSelectedName(null);
 
       Animated.timing(scaleAnim, {
         toValue: isAddModalOpen ? 0.95 : 1,
@@ -92,7 +100,13 @@ export default function Index() {
 
   const handleSubmit = () => {
     // Null Check
-    if (!selectedName || !selectedPrice || !selectedCurrency || !selectedType || !selectedImage) {
+    if (
+      !selectedName ||
+      !selectedPrice ||
+      !selectedCurrency ||
+      !selectedType ||
+      !selectedImage
+    ) {
       return alert("Please fill up all fields");
     }
 
@@ -101,7 +115,7 @@ export default function Index() {
       selectedPrice,
       selectedCurrency,
       selectedType,
-      selectedImage
+      selectedImage,
     ];
 
     insert(insertData);
@@ -138,8 +152,10 @@ export default function Index() {
       sanitizedName == "" ||
       selectedCurrency == null ||
       selectedPrice == null ||
-      selectedType == null
+      selectedType == null ||
+      selectedImage == null
     ) {
+      console.log("Something went wrong!", sanitizedName, selectedCurrency, selectedPrice, selectedType, selectedImage)
       return;
     }
 
@@ -148,6 +164,7 @@ export default function Index() {
       selectedCurrency,
       selectedType,
       parseFloat(selectedPrice),
+      selectedImage,
     ]);
     setRefresh(!refresh);
     setIsEditModalOpen(false);
@@ -167,21 +184,6 @@ export default function Index() {
     });
 
     return productCount == 0 ? false : true;
-  };
-
-  const handlePickImage = async () => {
-
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.Images,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      console.log(result)
-      setSelectedImage(result.assets[0].uri);
-    }
   };
 
   return (
@@ -249,9 +251,8 @@ export default function Index() {
         {/* Modal Body */}
         <View style={styles.modalBodyWrapper}>
           {/* Image Picker Wrapper */}
-
           <View style={{ alignItems: "center" }}>
-            <Pressable onPress={() => handlePickImage()}>
+            <Pressable onPress={() => handlePickImage(setSelectedImage)}>
               {selectedImage ? (
                 <Image
                   source={{ uri: selectedImage }}
@@ -340,6 +341,22 @@ export default function Index() {
 
         {/* Modal Body */}
         <View style={styles.modalBodyWrapper}>
+          {/* Image Picker Wrapper */}
+          <View style={{ alignItems: "center" }}>
+            <Pressable onPress={() => handlePickImage(setSelectedImage)}>
+              {selectedImage ? (
+                <Image
+                  source={{ uri: selectedImage }}
+                  style={{ backgroundColor: "grey", height: 200, width: 200 }}
+                />
+              ) : (
+                <View
+                  style={{ backgroundColor: "grey", height: 200, width: 200 }}
+                />
+              )}
+            </Pressable>
+          </View>
+
           {/* Name Input Wrapper */}
           <View style={styles.modalFormWrapper}>
             <Text>Name:</Text>

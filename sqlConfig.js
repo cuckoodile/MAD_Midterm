@@ -1,11 +1,20 @@
 import * as SQLite from "expo-sqlite";
+import * as ImagePicker from "expo-image-picker";
+
+import tilapya from "./assets/images/tilapya.jpg";
+import petchay from "./assets/images/petchay.jpg";
+import milk from "./assets/images/milk.jpg";
+import ligo from "./assets/images/ligo.jpg";
+import salmon from "./assets/images/salmon.jpg";
+import steak from "./assets/images/steak.jpg";
+import carrot from "./assets/images/carrot.jpg";
 
 export const createDB = async () => {
   console.log("Creating database...");
   try {
     const db = SQLite.openDatabaseSync("products.db");
 
-    await db.execAsync(`
+    const res = await db.execAsync(`
       CREATE TABLE IF NOT EXISTS currency (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE);
       CREATE TABLE IF NOT EXISTS type (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE);
       CREATE TABLE IF NOT EXISTS product (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, price DOUBLE, currency_id INTEGER, type_id INTEGER, image TEXT, FOREIGN KEY(currency_id) REFERENCES currency(id), FOREIGN KEY(type_id) REFERENCES type(id));
@@ -14,17 +23,17 @@ export const createDB = async () => {
       INSERT OR IGNORE INTO currency (name) VALUES ("USD"), ("JPY"), ("EURO"), ("POUND");
       INSERT OR IGNORE INTO type (name) VALUES ("Meat"), ("Seafood"), ("Vegetable"), ("Canned Goods"), ("Dairy");
 
-      INSERT OR IGNORE INTO product (name, price, currency_id, type_id)
+      INSERT OR IGNORE INTO product (name, price, currency_id, type_id, image)
       VALUES 
-      ('Steak', 99, (SELECT id FROM currency WHERE name = 'JPY'), (SELECT id FROM type WHERE name = 'Meat')), 
-      ('Ligo Sardines', 142, (SELECT id FROM currency WHERE name = 'POUND'), (SELECT id FROM type WHERE name = 'Canned Goods')),
-      ('Carrots', 331, (SELECT id FROM currency WHERE name = 'USD'), (SELECT id FROM type WHERE name = 'Vegetable')),
-      ('Petchay', 31, (SELECT id FROM currency WHERE name = 'JPY'), (SELECT id FROM type WHERE name = 'Vegetable')),
-      ('Milk', 1152, (SELECT id FROM currency WHERE name = 'USD'), (SELECT id FROM type WHERE name = 'Dairy')),
-      ('Salmon', 12, (SELECT id FROM currency WHERE name = 'EURO'), (SELECT id FROM type WHERE name = 'Seafood')),
-      ('Tilapya', 122, (SELECT id FROM currency WHERE name = 'EURO'), (SELECT id FROM type WHERE name = 'Seafood'));
+      ('Steak', 99, (SELECT id FROM currency WHERE name = 'JPY'), (SELECT id FROM type WHERE name = 'Meat'), '${steak}'), 
+      ('Ligo Sardines', 142, (SELECT id FROM currency WHERE name = 'POUND'), (SELECT id FROM type WHERE name = 'Canned Goods'), '${ligo}'),
+      ('Carrots', 331, (SELECT id FROM currency WHERE name = 'USD'), (SELECT id FROM type WHERE name = 'Vegetable'), '${carrot}'),
+      ('Petchay', 31, (SELECT id FROM currency WHERE name = 'JPY'), (SELECT id FROM type WHERE name = 'Vegetable'), '${petchay}'),
+      ('Milk', 1152, (SELECT id FROM currency WHERE name = 'USD'), (SELECT id FROM type WHERE name = 'Dairy'), '${milk}'),
+      ('Salmon', 12, (SELECT id FROM currency WHERE name = 'EURO'), (SELECT id FROM type WHERE name = 'Seafood'), '${salmon}'),
+      ('Tilapya', 122, (SELECT id FROM currency WHERE name = 'EURO'), (SELECT id FROM type WHERE name = 'Seafood'), '${tilapya}');
     `);
-    console.log("Database created successfully");
+    console.log("Database created successfully: ", res);
   } catch (err) {
     console.log(err);
   }
@@ -58,7 +67,8 @@ export const update = async (id, updateData = []) => {
       UPDATE product SET name = '${updateData[0]}', 
       currency_id = (SELECT id FROM currency WHERE name = '${updateData[1]}'), 
       type_id = (SELECT id FROM type WHERE name = '${updateData[2]}'),
-      price = ${updateData[3]}
+      price = ${updateData[3]},
+      image = '${updateData[4]}'
       WHERE id = ${id};
     `;
     await db.execAsync(query).then((res) => {
@@ -145,7 +155,7 @@ export const fetchCart = async (setData = []) => {
   try {
     const db = SQLite.openDatabaseSync("products.db");
     const res = await db.getAllAsync(`
-      SELECT c.id, c.quantity, p.name AS product_name, p.id AS product_id, p.price AS product_price, cy.name AS currency_name, ty.name AS type_name
+      SELECT c.id, c.quantity, p.name AS product_name, p.id AS product_id, p.price AS product_price, p.image AS product_image, cy.name AS currency_name, ty.name AS type_name
       FROM cart AS c
       JOIN product AS p ON c.product_id = p.id
       JOIN currency AS cy ON p.currency_id = cy.id
@@ -156,6 +166,16 @@ export const fetchCart = async (setData = []) => {
     return res;
   } catch (err) {
     console.log("Error Fetch All: ", err);
+  }
+};
+
+export const deleteCartOnId = async (id) => {
+  try {
+    const db = SQLite.openDatabaseSync("products.db");
+    await db.execAsync(`DELETE FROM cart WHERE id = ${id};`);
+    console.log(`Delete cart id ${id} successful`);
+  } catch (err) {
+    console.log("Error deleting cart: ", err);
   }
 };
 
@@ -172,5 +192,18 @@ export const handleCurrencySymbol = (currency, price) => {
       return `£ ${price}`;
     default:
       return "Error currency input";
+  }
+};
+
+export const handlePickImage = async (setData) => {
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.Images,
+    aspect: [4, 3],
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    console.log("Image result: ", result.assets[0].uri);
+    setData(result.assets[0].uri);
   }
 };

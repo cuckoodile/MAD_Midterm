@@ -13,15 +13,16 @@ export default function Card({ data = [], refresh, openModal }) {
       {/* Text Content */}
       <View style={styles.contentWrapper}>
         {/* IMAGEEEE */}
-        <Image
-          source={{ uri: data.image }}
-          style={{
-            backgroundColor: "black",
-            height: 80,
-            width: 80,
-            // borderRadius: "50%",
-          }}
-        />
+        <View style={{ borderRadius: "50%", overflow: "hidden" }}>
+          <Image
+            source={{ uri: data.image }}
+            style={{
+              backgroundColor: "black",
+              height: 80,
+              width: 80,
+            }}
+          />
+        </View>
         <View
           style={{
             justifyContent: "space-evenly",

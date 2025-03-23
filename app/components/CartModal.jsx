@@ -1,4 +1,4 @@
-import { Animated, Pressable, StyleSheet, View, Text } from "react-native";
+import { Animated, Pressable, StyleSheet, View, Text, Image } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 
 import { handleCurrencySymbol, toCart } from "@/sqlConfig";
@@ -24,11 +24,9 @@ export default function CartModal({
   }, [isOpen]);
 
   const handleToCart = (id) => {
-    console.log(`Attemp to cart ID: ${id}`)
+    console.log(`Attemp to cart ID: ${id}`);
 
-    toCart(id, quantityCounter).then(() => (
-        setIsModalOpen(false)
-    ));
+    toCart(id, quantityCounter).then(() => setIsModalOpen(false));
   };
 
   return (
@@ -48,7 +46,18 @@ export default function CartModal({
 
         {/* Body Content */}
         <View style={styles.body}>
-          <View style={{ backgroundColor: "grey", height: 150, width: 150 }} />
+          {/* IMAGEEEE */}
+          <View style={{ borderRadius: 15, overflow: "hidden" }}>
+            <Image
+              source={{ uri: data.image }}
+              style={{
+                backgroundColor: "black",
+                height: 150,
+                width: 150,
+              }}
+            />
+          </View>
+
           <Text>{data.name}</Text>
 
           <View
@@ -59,7 +68,9 @@ export default function CartModal({
             }}
           >
             <Text>Currency: {data.currency_name}</Text>
-            <Text>Price: {handleCurrencySymbol(data.currency_name, data.price)}</Text>
+            <Text>
+              Price: {handleCurrencySymbol(data.currency_name, data.price)}
+            </Text>
           </View>
 
           <View

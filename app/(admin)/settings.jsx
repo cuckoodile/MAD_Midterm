@@ -8,7 +8,7 @@ export default function Settings() {
   const router = useRouter();
 
   return (
-    <View>
+    <View style={{ alignItems: "center", gap: 20}}>
       <Text>Settings</Text>
 
       <Link
